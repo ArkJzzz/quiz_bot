@@ -1,0 +1,9 @@
+.env
+bot-tg.py
+bot-vk.py
+quiz-questions/
+test*
+*.log
+*.json
+*.zip
+
