@@ -7,6 +7,7 @@ import logging
 
 logger = logging.getLogger(__file__)
 
+<<<<<<< HEAD
 def clear_junk(line):
 	if line == '':
 		return None
@@ -20,6 +21,8 @@ def clear_junk(line):
 		new_line = ' '.join(line_chunks)
 		return new_line
 
+=======
+>>>>>>> 7005ebc887d9452e1151a4c5813c988a8a16d3cf
 
 def main():
 	# init
@@ -51,13 +54,18 @@ def main():
 		'Автор': None,
 	}
 	
+<<<<<<< HEAD
 
 	for chunk in chunks:
 		new_chunk_lines = []
+=======
+	for chunk in chunks:
+>>>>>>> 7005ebc887d9452e1151a4c5813c988a8a16d3cf
 		chunk_lines = chunk.split('\n')
 
 		for line in chunk_lines:
 			idx = chunk_lines.index(line)
+<<<<<<< HEAD
 			new_line = clear_junk(line)
 			if new_line:
 				new_chunk_lines.append(new_line)
@@ -70,17 +78,52 @@ def main():
 
 			
 		logger.debug('{}'.format(new_chunks))
+=======
+			line_chunks = line.split()
+			new_line = ' '.join(line_chunks)
+			chunk_lines.remove(line)
+
+			if line[:6] == 'Вопрос':
+				chunk_lines.remove(line)
+				chunk_lines.insert(idx, 'Вопрос:')
+
+			if 'pic:' in line:
+				chunk_lines.remove(line)
+
+			if line == '':
+				chunk_lines.remove(line)
+
+			chunk_lines.insert(idx, new_line)
+
+
+		# for line in chunk_lines:
+		# 	idx = chunk_lines.index(line)
+		# 	line_chunks = line.split()
+		# 	new_line = ' '.join(line_chunks)
+		# 	chunk_lines.remove(line)
+		# 	chunk_lines.insert(idx, new_line)
+			
+		logger.debug('{}'.format(chunk_lines))
+>>>>>>> 7005ebc887d9452e1151a4c5813c988a8a16d3cf
 
 
 
 
 
 
+<<<<<<< HEAD
 		# key = chunk_lines[0]
 		# value = ' '.join(chunk_lines[1:])
 		# logger.debug('{}'.format(value))
 		# question = (key, value)
 		# new_chunks.append(question)
+=======
+		key = chunk_lines[0]
+		value = ' '.join(chunk_lines[1:])
+		logger.debug('{}'.format(value))
+		question = (key, value)
+		new_chunks.append(question)
+>>>>>>> 7005ebc887d9452e1151a4c5813c988a8a16d3cf
 
 
 
