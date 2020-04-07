@@ -31,7 +31,16 @@ def get_list_cleaned_chunks(chunks):
 		cleaned_lines = []
 
 		for line in lines:
-			cleaned_line = clear_junk(line)
+			if line[:6] == 'Вопрос':
+				cleaned_line = 'Вопрос:'
+			elif 'pic:' in line:
+				cleaned_line = 'Здесь должна быть картинка (вот только где она затерялась?)'
+			elif line == '':
+				cleaned_line = None
+			else:
+				line_chunks = line.split()
+				cleaned_line = ' '.join(line_chunks)
+
 			if cleaned_line:
 				cleaned_lines.append(cleaned_line)
 
@@ -79,29 +88,29 @@ def main():
 	with open(file, 'r', encoding='KOI8-R') as my_file:
 		question_data = my_file.read()
 
-	lines = question_data.split('\n')
-	clean_lines = []
 
-	for line in lines:
-		clean_line = clear_junk(line)
-		clean_lines.append(clean_line)
+	# lines = question_data.split('\n\n')
+	# clean_lines = []
+
+	# for line in lines:
+	# 	clean_line = clear_junk(line)
+	# 	clean_lines.append(clean_line)
 	
-	for line in clean_lines:
-		print(line)
+	# for line in clean_lines:
+	# 	print(line)
 
-	# chunks = question_data.split('\n\n')
+	chunks = question_data.split('\n\n')
+	cleaned_chunks = get_list_cleaned_chunks(chunks)
+	questions = get_questions(cleaned_chunks)
 
-	# cleaned_chunks = get_list_cleaned_chunks(chunks)
-
-	# questions = get_questions(cleaned_chunks)
-
-	# for question in questions:
-	# 	logger.debug('{}\n{}\n{}'.format(
-	# 		question['Вопрос'],
-	# 		question['Ответ'],
-	# 		question['Комментарий'],
-	# 		)
-	# 	)
+	for question in questions:
+		for key, value in question.items():
+			logger.debug('{}\n{}\n'.format(
+				key,
+				value,
+				# question['Комментарий'],
+				)
+			)
 
 if __name__ == "__main__":
 	main()
