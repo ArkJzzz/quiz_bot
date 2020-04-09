@@ -78,14 +78,7 @@ def print_question(question):
 
 
 def main():
-	# init
-	logging.basicConfig(
-		format='%(asctime)s %(name)s - %(funcName)s:%(lineno)d - %(message)s', 
-		datefmt='%Y-%b-%d %H:%M:%S (%Z)',
-	)
-	logger.setLevel(logging.DEBUG)
 
-	# do
 	parser = argparse.ArgumentParser(
 		description='''
 		Программа принимает на вход путь до текстового файла с вопросами викторины 
