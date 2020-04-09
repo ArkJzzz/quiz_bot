@@ -2,6 +2,7 @@
 bot-tg.py
 bot-vk.py
 quiz-questions/
+__pycache__/
 test*
 *.log
 *.json
