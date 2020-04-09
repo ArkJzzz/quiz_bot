@@ -54,21 +54,23 @@ def get_list_cleaned_chunks(chunks):
 
 def get_questions(chunks_list):
 	questions = []
-	for line in chunks_list:
+	keys = [
+		'Вопрос',
+		'Ответ',
+		'Зачет',
+		'Комментарий',
+		'Источник',
+		'Автор',
+	]
+	question = question = {key: None for key in keys}
 
-		if line[0] == 'Вопрос:':
-			question = {'Вопрос': line[1]}
-		if line[0] == 'Ответ:':
-			question['Ответ']= line[1]
-		if line[0] == 'Зачет:':
-			question['Зачет']= line[1]
-		if line[0] == 'Комментарий:':
-			question['Комментарий']= line[1]
-		if line[0] == 'Источник:':
-			question['Источник']= line[1]
-		if line[0] == 'Автор:':
-			question['Автор']= line[1]
+	for item in chunks_list:	
+		if item[0] == 'Вопрос:' and question['Вопрос']:
 			questions.append(question)
+			question = {key: None for key in keys}
+
+		if item[0][:-1] in keys:
+			question[item[0][:-1]] = item[1]
 
 	return questions
 
@@ -88,27 +90,17 @@ def main():
 	with open(file, 'r', encoding='KOI8-R') as my_file:
 		question_data = my_file.read()
 
-
-	# lines = question_data.split('\n\n')
-	# clean_lines = []
-
-	# for line in lines:
-	# 	clean_line = clear_junk(line)
-	# 	clean_lines.append(clean_line)
-	
-	# for line in clean_lines:
-	# 	print(line)
-
 	chunks = question_data.split('\n\n')
 	cleaned_chunks = get_list_cleaned_chunks(chunks)
 	questions = get_questions(cleaned_chunks)
 
 	for question in questions:
+		logger.debug('##'*30)
+		# logger.debug(question)
 		for key, value in question.items():
-			logger.debug('{}\n{}\n'.format(
+			logger.debug('{} - {}'.format(
 				key,
 				value,
-				# question['Комментарий'],
 				)
 			)
 
