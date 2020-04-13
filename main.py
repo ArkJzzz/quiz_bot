@@ -24,8 +24,6 @@ from telegram.ext import Filters
 from telegram.ext import MessageHandler
 from telegram.ext import CallbackQueryHandler
 
-# local imports
-from parse_file import parse_file
 
 
 BASE_DIR = dirname(abspath(__file__))
@@ -53,29 +51,27 @@ def start_bot(update, context):
 	)
 
 def get_choise(update, context):
-	# new_question = 'здесь ты получаешь новый вопрос'
-	my_score = 'какие очки? линзы - вот это модно!'
-	give_up = 'пичальбеда..'
+
+	print('вызов get_choise()')
+
 	message_text = update.message.text
 
 	if message_text == 'Новый вопрос':
 		logger.debug('выбран Новый вопрос')
-		question_cards_file = get_random_file(QUIZ_QUESTION_DIR)
-		logger.debug('выбран файл: {}'.format(question_cards_file))
+		question_cards_file = get_random_file(QUIZ_QUESTION_DIR)	
 		question_cards = parsing_file(question_cards_file)
-		logger.debug('из файла извлечены вопросы')
 		question_card = get_random_question_card(question_cards)
+		logger.debug('выбран файл: {}'.format(question_cards_file))
 		logger.debug('выбран вопрос: {}'.format(question_card))
 		update.message.reply_text(question_card['Вопрос'])
 		# return question_card['Вопрос']
 
 	if message_text == 'Мой счет':
-		update.message.reply_text(my_score)
-		return my_score
+		update.message.reply_text('Здесь тебе не банк!')
 
 	if message_text == 'Сдаться':
-		update.message.reply_text(give_up)
-		return give_up
+		update.message.reply_text(question_card['Ответ'])
+
 
 def get_random_file(files_dir):
 	paths_files = []
