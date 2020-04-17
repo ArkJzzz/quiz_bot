@@ -1,11 +1,22 @@
 #!/usr/bin/python3
 __author__ = 'ArkJzzz (arkjzzz@gmail.com)'
 
+#################
+##### TODO ######
+
+# Переделать quiz-tools: 
+#	возвратить один словарь из всех вопросов из всех файлов
+# Вынести quiz-tools в отдельный файл
+# Выбор случайного вопроса из словаря
+# Оцените ответ пользователя 
+# Воспользуйтесь ConversationHandler 
+# Добавьте возможность сдаться 
+
+
 
 import sys
 import logging
 import argparse
-# import google.auth
 import random
 from os import getenv
 from os import listdir
@@ -14,6 +25,8 @@ from os.path import isfile
 from os.path import dirname
 from os.path import abspath
 from os.path import join as joinpath
+
+import redis
 from dotenv import load_dotenv
 from telegram import InlineKeyboardButton
 from telegram import InlineKeyboardMarkup
@@ -24,53 +37,22 @@ from telegram.ext import Filters
 from telegram.ext import MessageHandler
 from telegram.ext import CallbackQueryHandler
 
-
-
+logger = logging.getLogger(__file__)
+load_dotenv()
 BASE_DIR = dirname(abspath(__file__))
 QUIZ_QUESTION_DIR = 'quiz-questions'
 QUIZ_QUESTION_DIR = joinpath(BASE_DIR, QUIZ_QUESTION_DIR)
+TELEGRAM_TOKEN = getenv('TELEGRAM_TOKEN')
+REDIS_HOST = getenv('REDIS_HOST')
+REDIS_PORT = getenv('REDIS_PORT')
+REDIS_PASSWORD = getenv('REDIS_PASSWORD')
 
-
-logger = logging.getLogger(__file__)
-
-
-def start_bot(update, context):
-	logger.debug('startbot_handler')
-	chat_id=update.effective_chat.id
-	text='Привет, это бот для викторин!'
-	keyboard = [
-		['Новый вопрос'],
-		['Мой счет', 'Сдаться'],
-	]
-	reply_markup = ReplyKeyboardMarkup(keyboard)
-
-	context.bot.send_message(
-		chat_id=chat_id,
-		text=text, 
-		reply_markup=reply_markup
+DB = redis.Redis(
+		host=REDIS_HOST, 
+		port=REDIS_PORT, 
+		db=0, 
+		password=REDIS_PASSWORD,
 	)
-
-def get_choise(update, context):
-
-	print('вызов get_choise()')
-
-	message_text = update.message.text
-
-	if message_text == 'Новый вопрос':
-		logger.debug('выбран Новый вопрос')
-		question_cards_file = get_random_file(QUIZ_QUESTION_DIR)	
-		question_cards = parsing_file(question_cards_file)
-		question_card = get_random_question_card(question_cards)
-		logger.debug('выбран файл: {}'.format(question_cards_file))
-		logger.debug('выбран вопрос: {}'.format(question_card))
-		update.message.reply_text(question_card['Вопрос'])
-		# return question_card['Вопрос']
-
-	if message_text == 'Мой счет':
-		update.message.reply_text('Здесь тебе не банк!')
-
-	if message_text == 'Сдаться':
-		update.message.reply_text(question_card['Ответ'])
 
 
 def get_random_file(files_dir):
@@ -102,7 +84,6 @@ def parsing_file(file):
 			else:
 				line_chunks = line.split()
 				cleaned_line = ' '.join(line_chunks)
-
 			if cleaned_line:
 				cleaned_lines.append(cleaned_line)
 
@@ -122,19 +103,67 @@ def parsing_file(file):
 	]
 	question_card = {key: None for key in keys}
 
-	for item in cleaned_chunks:	
-		if item[0] == 'Вопрос:' and question_card['Вопрос']:
+	for chunk in cleaned_chunks:	
+		if chunk[0] == 'Вопрос:' and question_card['Вопрос']:
 			question_cards.append(question_card)
 			question_card = {key: None for key in keys}
 
-		if item[0][:-1] in keys:
-			question_card[item[0][:-1]] = item[1]
+		if chunk[0][:-1] in keys:
+			question_card[chunk[0][:-1]] = chunk[1]
 
 	return question_cards
 
 def get_random_question_card(question_cards):
 	question_card_number = random.randrange(len(question_cards))
 	return question_cards[question_card_number]
+
+
+
+def start_bot(update, context):
+	logger.debug('startbot_handler')
+	chat_id=update.effective_chat.id
+	text='Привет, это бот для викторин!'
+	keyboard = [
+		['Новый вопрос'],
+		['Мой счет', 'Сдаться'],
+	]
+	reply_markup = ReplyKeyboardMarkup(keyboard)
+
+	context.bot.send_message(
+		chat_id=chat_id,
+		text=text, 
+		reply_markup=reply_markup
+	)
+
+def get_choise(update, context):
+	chat_id = update.effective_chat.id
+	message_text = update.message.text
+	if message_text == 'Новый вопрос':
+		question_cards_file = get_random_file(QUIZ_QUESTION_DIR)	
+		question_cards = parsing_file(question_cards_file)
+		question_card = get_random_question_card(question_cards)
+		question = question_card['Вопрос']
+		DB.set(chat_id, question)
+
+		logger.debug('выбран файл: {}'.format(question_cards_file))
+		logger.debug('выбран вопрос: {}'.format(question_card))
+		logger.debug('chat_id: {chat_id}, qw: {question}'.format(
+			chat_id=chat_id,
+			question=(DB.get(chat_id)).decode('utf-8'), 
+			)
+		)
+
+		update.message.reply_text(question)
+
+	if message_text == 'Мой счет':
+		update.message.reply_text('Здесь тебе не банк!')
+
+	if message_text == 'Сдаться':
+		question = (DB.get(chat_id)).decode('utf-8')
+		answer = None # взять ответ по вопросу из словаря.
+		update.message.reply_text(question_card['Ответ'])
+
+
 
 def main():
 	# init
@@ -144,17 +173,12 @@ def main():
 	)
 	logger.setLevel(logging.DEBUG)
 
-
-
-	load_dotenv()
-	telegram_token = getenv("TELEGRAM_TOKEN")
 	updater = Updater(
-		token=telegram_token, 
+		token=TELEGRAM_TOKEN, 
 		use_context=True, 
 	)
-
 	dp = updater.dispatcher
-	dp.add_handler(CommandHandler("start", start_bot))
+	dp.add_handler(CommandHandler('start', start_bot))
 	dp.add_handler(MessageHandler(Filters.text, get_choise))
 
 	
@@ -164,13 +188,17 @@ def main():
 
 
 	try:
+
+
 		updater.start_polling()
 
 
 	except FileNotFoundError:
 		logger.error('Ошибка: Файл не найден', exc_info=True)
-	except telegram.error.NetworkError:
-		logger.error('Не могу подключиться к telegram')
+	# except telegram.error.NetworkError:
+	# 	logger.error('Не могу подключиться к telegram')
+	except redis.exceptions.AuthenticationError:
+		logger.error('Подключение к базе данных: ошибка аутентификации')
 	except Exception  as err:
 		logger.error('Бот упал с ошибкой:')
 		logger.error(err)
