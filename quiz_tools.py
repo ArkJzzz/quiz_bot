@@ -4,10 +4,6 @@ __author__ = 'ArkJzzz (arkjzzz@gmail.com)'
 #####################################################################
 # TODO 
 #
-# Переделать quiz-tools: 
-#	возвратить один словарь из всех вопросов из всех файлов
-# Вынести quiz-tools в отдельный файл
-# Выбор случайного вопроса из словаря
 #
 #####################################################################
 
@@ -85,8 +81,6 @@ def get_questions_dict(files_dir):
 	question_cards = []
 	for root, dirs, files in walkpath(files_dir):
 		for filename in files:
-			print(root)
-			print(filename)
 			filename = joinpath(root, filename)
 			question_cards_from_file = parsing_file(filename)
 			question_cards.extend(question_cards_from_file)
