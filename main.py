@@ -72,42 +72,74 @@ def start_bot(update, context):
 		reply_markup=reply_markup
 	)
 
+
 def get_choise(update, context):
 	chat_id = update.effective_chat.id
 	message_text = update.message.text
 	if message_text == 'Новый вопрос':
-		question_card_number = random.randrange(len(QUESTION_CARDS))
-		question_card = QUESTION_CARDS[question_card_number]
-		question = question_card['Вопрос']
-		DB.set(chat_id, question_card_number)
+		new_qwestion = get_new_question(chat_id)
+		update.message.reply_text(new_qwestion)
+	elif message_text == 'Мой счет':
+		score = get_score(chat_id)
+		update.message.reply_text(score)
+	elif message_text == 'Сдаться':
+		correct_answer = get_correct_answer(chat_id)
+		for chunk in correct_answer:
+			if chunk:
+				update.message.reply_text(chunk)
+	else:
+		correct_answer = get_correct_answer(chat_id)
+		evaluation_result = evaluate_answer(correct_answer, message_text)
+		update.message.reply_text(evaluation_result)
 
-		update.message.reply_text(question)
 
-		logger.debug('выбрана карточка: {}'.format(question_card))
-		logger.debug('chat_id: {chat_id}, qw: {question}'.format(
-			chat_id=chat_id,
-			question=(DB.get(chat_id)).decode('utf-8'), 
-			)
+def get_new_question(chat_id):
+	question_card_number = random.randrange(len(QUESTION_CARDS))
+	question_card = QUESTION_CARDS[question_card_number]
+	new_question = question_card['Вопрос']
+	DB.set(chat_id, question_card_number)
+
+	logger.debug('выбрана карточка: {}'.format(question_card))
+	logger.debug('chat_id: {chat_id}, question_card_number: {question_card_number}'.format(
+		chat_id=chat_id,
+		question_card_number=(DB.get(chat_id)).decode('utf-8'), 
 		)
+	)
 
-	if message_text == 'Мой счет':
-		update.message.reply_text('Здесь тебе не банк!')
+	return new_question
 
-	if message_text == 'Сдаться':
-		question_card_number = (DB.get(chat_id)).decode('utf-8')
-		question_card_number = int(question_card_number)
-		question_card = QUESTION_CARDS[question_card_number]
-		answer = question_card['Ответ']
-		ofset = question_card['Зачет']
-		comment = question_card['Комментарий']
-		source = question_card['Источник']
-		update.message.reply_text(answer)
-		if ofset:
-			update.message.reply_text(ofset)
-		if comment:
-			update.message.reply_text(comment)
-		if source:
-			update.message.reply_text(source)
+
+def get_score(chat_id):
+	score = 'Здесь тебе не банк!'
+	return score
+
+
+def get_correct_answer(chat_id):
+	question_card_number = (DB.get(chat_id)).decode('utf-8')
+	question_card_number = int(question_card_number)
+	question_card = QUESTION_CARDS[question_card_number]
+	correct_answer = [
+		question_card['Ответ'],
+		question_card['Комментарий'],
+		question_card['Источник'],
+	]
+	return correct_answer
+
+
+def evaluate_answer(correct_answer, message_text):
+	excluded_characters = ['.', ',', '!', '?']
+	for character in excluded_characters:
+		answer = message_text.replace(character, ' ')
+	answer = answer.lower()
+	correct_answer = correct_answer[0].lower()
+	if correct_answer[1]:
+		ofset = correct_answer[1].lower()
+	if answer in (correct_answer, ofset):
+		evaluation_result = 'Правильно! Поздравляю! Для следующего вопроса нажми «Новый вопрос»'
+	else:
+		evaluation_result = 'Неправильно... Попробуешь ещё раз?'
+	return evaluation_result
+
 
 def main():
 	# init
@@ -132,10 +164,8 @@ def main():
 
 
 	try:
-
-
+		logger.debug('Стартуем бота')
 		updater.start_polling()
-
 
 	except FileNotFoundError:
 		logger.error('Ошибка: Файл не найден', exc_info=True)
@@ -147,8 +177,6 @@ def main():
 		logger.error('Бот упал с ошибкой:')
 		logger.error(err)
 		logger.debug(err, exc_info=True)
-
-
 
 	updater.idle()
 	logger.info('Бот остановлен')

@@ -16,7 +16,7 @@ from os.path import join as joinpath
 
 
 logger = logging.getLogger(__file__)
-
+logger.setLevel(logging.DEBUG)
 
 def get_random_file(files_dir):
 	paths_files = []
@@ -84,6 +84,7 @@ def get_questions_dict(files_dir):
 			filename = joinpath(root, filename)
 			question_cards_from_file = parsing_file(filename)
 			question_cards.extend(question_cards_from_file)
+			print('Завершено чтение файла {}'.format(filename))
 
 	return question_cards
 
