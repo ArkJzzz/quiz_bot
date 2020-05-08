@@ -1,11 +1,6 @@
 #!/usr/bin/python3
 __author__ = 'ArkJzzz (arkjzzz@gmail.com)'
 
-#####################################################################
-# TODO 
-#
-#
-#####################################################################
 
 import logging
 import argparse
@@ -84,34 +79,13 @@ def get_questions_dict(files_dir):
 			filename = joinpath(root, filename)
 			question_cards_from_file = parsing_file(filename)
 			question_cards.extend(question_cards_from_file)
-			print('Завершено чтение файла {}'.format(filename))
+			logger.info('Завершено чтение файла {}'.format(filename))
 
 	return question_cards
 
 
 def main():
-
-	logging.basicConfig(
-		format='%(asctime)s %(name)s - %(funcName)s:%(lineno)d - %(message)s', 
-		datefmt='%Y-%b-%d %H:%M:%S (%Z)',
-	)
-	logger.setLevel(logging.DEBUG)
-
-	parser = argparse.ArgumentParser(
-		description='''
-		Программа принимает на вход путь до текстового файла с вопросами 
-		викторины и возвращает эти вопросы в виде структурированного словаря.
-		'''
-		)
-	parser.add_argument('-f', '--filename', help='имя файла')
-	args = parser.parse_args()
-	
-	try:
-		question_cards = parse_file(args.filename)
-	except FileNotFoundError:
-		logging.error('Ошибка: Файл не найден', exc_info=True)
-
-
+	print('Этот скрипт не предназначен для запуска напрямую')
 
 
 if __name__ == "__main__":

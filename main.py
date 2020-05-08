@@ -32,6 +32,7 @@ from telegram.ext import CommandHandler
 from telegram.ext import Filters
 from telegram.ext import MessageHandler
 from telegram.ext import CallbackQueryHandler
+from telegram.ext import ConversationHandler
 
 from quiz_tools import get_questions_dict
 
@@ -43,28 +44,26 @@ QUIZ_QUESTION_DIR = 'quiz-questions'
 QUIZ_QUESTION_DIR = joinpath(BASE_DIR, QUIZ_QUESTION_DIR)
 QUESTION_CARDS = get_questions_dict(QUIZ_QUESTION_DIR)
 TELEGRAM_TOKEN = getenv('TELEGRAM_TOKEN')
-REDIS_HOST = getenv('REDIS_HOST')
-REDIS_PORT = getenv('REDIS_PORT')
-REDIS_PASSWORD = getenv('REDIS_PASSWORD')
-
-
 DB = redis.Redis(
-		host=REDIS_HOST, 
-		port=REDIS_PORT, 
+		host=getenv('REDIS_HOST'), 
+		port=getenv('REDIS_PORT'), 
 		db=0, 
-		password=REDIS_PASSWORD,
+		password=getenv('REDIS_PASSWORD'),
 	)
 
+CHOOSING, TYPING_REPLY = range(2)
 
-def start_bot(update, context):
+keyboard = [
+	['Новый вопрос'],
+	['Сдаться'],
+]
+reply_markup = ReplyKeyboardMarkup(keyboard)
+
+
+def start(update, context):
 	logger.debug('startbot_handler')
 	chat_id=update.effective_chat.id
 	text='Привет, это бот для викторин!'
-	keyboard = [
-		['Новый вопрос'],
-		['Мой счет', 'Сдаться'],
-	]
-	reply_markup = ReplyKeyboardMarkup(keyboard)
 
 	context.bot.send_message(
 		chat_id=chat_id,
@@ -72,8 +71,70 @@ def start_bot(update, context):
 		reply_markup=reply_markup
 	)
 
+def handle_new_question_request(update, context):
+	chat_id = update.effective_chat.id
+	question_card_number = random.randrange(len(QUESTION_CARDS))
+	question_card = QUESTION_CARDS[question_card_number]
+	DB.set(chat_id, question_card_number)
+	new_question = question_card['Вопрос']
+	update.message.reply_text(new_question)
 
-def get_choise(update, context):
+	logger.debug('выбрана карточка: {}'.format(question_card))
+	logger.debug('chat_id: {chat_id}, question_card_number: {question_card_number}'.format(
+		chat_id=chat_id,
+		question_card_number=(DB.get(chat_id)).decode('utf-8'), 
+		)
+	)
+
+	return TYPING_REPLY
+
+
+def handle_solution_attempt(update, context):
+	chat_id = update.effective_chat.id
+	question_card_number = (DB.get(chat_id)).decode('utf-8')
+	question_card_number = int(question_card_number)
+	question_card = QUESTION_CARDS[question_card_number]
+	correct_answer = [
+		question_card['Ответ'],
+		question_card['Комментарий'],
+		question_card['Источник'],
+	]
+
+	excluded_characters = ['.', ',', '!', '?', '[', ']', '(', ')']
+	answer = message_text.lower()
+	correct_answer = correct_answer[0].lower()
+	for character in excluded_characters:
+		answer = answer.replace(character, ' ')
+		correct_answer = correct_answer.replace(character, ' ')
+	if correct_answer[1]:
+		ofset = correct_answer[1].lower()
+	if answer in (correct_answer, ofset):
+		update.message.reply_text('Правильно! Для следующего вопроса нажми «Новый вопрос»')
+	else:
+		update.message.reply_text('Неправильно... Попробуешь ещё раз?')
+	
+	return CHOOSING
+
+
+
+def handle_capitulate(update, context):
+	chat_id = update.effective_chat.id
+	question_card_number = (DB.get(chat_id)).decode('utf-8')
+	question_card_number = int(question_card_number)
+	question_card = QUESTION_CARDS[question_card_number]
+	correct_answer = [
+		question_card['Ответ'],
+		question_card['Комментарий'],
+		question_card['Источник'],
+	]
+	for chunk in correct_answer:
+		if chunk:
+			update.message.reply_text(chunk)
+
+	return CHOOSING
+
+
+def regular_choice(update, context):
 	chat_id = update.effective_chat.id
 	message_text = update.message.text
 	if message_text == 'Новый вопрос':
@@ -127,11 +188,12 @@ def get_correct_answer(chat_id):
 
 
 def evaluate_answer(correct_answer, message_text):
-	excluded_characters = ['.', ',', '!', '?']
-	for character in excluded_characters:
-		answer = message_text.replace(character, ' ')
-	answer = answer.lower()
+	excluded_characters = ['.', ',', '!', '?', '[', ']', '(', ')']
+	answer = message_text.lower()
 	correct_answer = correct_answer[0].lower()
+	for character in excluded_characters:
+		answer = answer.replace(character, ' ')
+		correct_answer = correct_answer.replace(character, ' ')
 	if correct_answer[1]:
 		ofset = correct_answer[1].lower()
 	if answer in (correct_answer, ofset):
@@ -154,13 +216,31 @@ def main():
 		use_context=True, 
 	)
 	dp = updater.dispatcher
-	dp.add_handler(CommandHandler('start', start_bot))
-	dp.add_handler(MessageHandler(Filters.text, get_choise))
 
-	
-	# question_cards_file = get_random_file(QUIZ_QUESTION_DIR)
-	# question_cards = parsing_file(question_cards_file)
-	# question_card = get_random_question_card(question_cards)
+	conversation_handler = ConversationHandler(
+		entry_points=[
+			CommandHandler('start', start),
+			MessageHandler(
+				Filters.regex('^Новый вопрос$'),
+				handle_new_question_request,
+			),	
+			MessageHandler(
+				Filters.regex('^Сдаться$'),
+				handle_capitulate,
+				),
+			MessageHandler(
+				Filters.text,
+				handle_solution_attempt,
+			)
+		],
+		states={},
+		fallbacks=[],
+	)
+
+	dp.add_handler(conversation_handler)
+	# dp.add_handler(CommandHandler('start', start_bot))
+	# dp.add_handler(MessageHandler(Filters.text, regular_choice))
+
 
 
 	try:
