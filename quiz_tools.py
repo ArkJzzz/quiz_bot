@@ -40,6 +40,13 @@ def get_question_cards(files_dir):
 
 
 def get_question_cards_from_file(filename):
+    ''' Читает файл с вопросами и возвращает список словарей вида:
+    {
+        'question': 'Текст вопроса',
+        'short_answer': 'Ответ' ,
+        'long_answer': 'Расширенный ответ, включая комментарий, источник, автора'
+    }
+    '''
     with open(filename, 'r', encoding='KOI8-R') as my_file:
         questions_data = my_file.read()
     questions_data = questions_data.split('\n\n')
@@ -48,7 +55,7 @@ def get_question_cards_from_file(filename):
     keys = [
         'question',
         'short_answer',
-        'long_answer', # Включая Комментарий, Источник, Автор
+        'long_answer',
     ]
     question_card = {key: None for key in keys}
 
@@ -88,7 +95,7 @@ def get_question_cards_from_file(filename):
 
 def clear_text_block(text_block):
     '''Удаляет первую строку, лишние переносы строки и пробелы'''
-    
+
     text_block = text_block.split('\n')[1:]
     text_block = ' '.join(text_block)
     text_block = re.sub(r' {2,}', ' ', text_block)
