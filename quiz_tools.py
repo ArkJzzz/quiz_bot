@@ -13,30 +13,24 @@ from os.path import join as joinpath
 
 from dotenv import load_dotenv
 
+import redis_tools
+
 
 logger = logging.getLogger(__file__)
 logger.setLevel(logging.DEBUG)
 
 
-def add_question_cards_to_database(files_dir, database):
-    question_cards = get_question_cards(files_dir)
-    for question_card in enumerate(question_cards):
-        key = 'question_card_{}'.format(question_card[0])
-        value = json.dumps(question_card[1])
-        database.set(key, value)
-        logger.debug('Вопрос {} занесен в базу данных'.format(key))
-
 
 def get_question_cards(files_dir):
-    question_cards = []
+    question_cards_from_dir = []
     for root, dirs, files in walkpath(files_dir):
         for filename in files:
             filename = joinpath(root, filename)
-            question_cards = get_question_cards_from_file(filename)
-            question_cards.extend(question_cards)
+            question_cards_from_file = get_question_cards_from_file(filename)
+            question_cards_from_dir.extend(question_cards_from_file)
             logger.info('Завершено чтение файла {}'.format(filename))
     
-    return question_cards
+    return question_cards_from_dir
 
 
 def get_question_cards_from_file(filename):
@@ -51,7 +45,7 @@ def get_question_cards_from_file(filename):
         questions_data = my_file.read()
     questions_data = questions_data.split('\n\n')
 
-    question_cards = []
+    question_cards_from_file = []
     keys = [
         'question',
         'short_answer',
@@ -64,7 +58,7 @@ def get_question_cards_from_file(filename):
         if question:
             if question_card['question']:
                 question_card['long_answer'] = long_answer
-                question_cards.append(question_card)
+                question_cards_from_file.append(question_card)
                 question_card = {key: None for key in keys}
             question_card['question'] = clear_text_block(text_block)
 
@@ -90,7 +84,7 @@ def get_question_cards_from_file(filename):
             author = clear_text_block(text_block)
             long_answer += 'Автор:\n{}'.format(author)
 
-    return question_cards
+    return question_cards_from_file
 
 
 def clear_text_block(text_block):
@@ -103,20 +97,30 @@ def clear_text_block(text_block):
     return text_block
 
 
-def get_random_key(database):
-    keys = database.keys(pattern='question_card_')
+def add_question_cards_to_database(question_cards, database):
+    for question_card in enumerate(question_cards):
+        key = 'question_card_{}'.format(question_card[0])
+        value = question_card[1]
+        set_data_to_database(key, value, database)
+    
+    logger.debug('Вопросы занесены в базу данных')
+
+
+def add_tg_user_to_database(chat_id, value, database):
+    key = 'user_tg_{chat_id}'.format(chat_id=chat_id)
+    value = {'last_asked_question': value}
+    redis_tools.set_data_to_database(key, value, database)
+
+    logger.debug('Пользователь добавлен в базу')
+
+
+def get_random_question(database):
+    pattern = 'question_card_*'
+    keys = get_keys_from_database(database, pattern)
     random_number = random.randrange(len(keys))
-    random_key = keys[random_number].decode('utf-8')
+    random_key = keys[random_number]
 
     return random_key
-
-
-def get_dict_value(key, database):
-    value = database.get(key)
-    value = json.loads(value)
-
-    return value
-
 
 
 
