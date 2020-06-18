@@ -34,7 +34,7 @@ def connect_to_redis():
 def set_data_to_database(key, value, database):
     value = json.dumps(value)
     database.set(key, value)
-    logger.debug('БД: добавлена запись: {}: {}'.format(key, value))
+    logger.info('БД: добавлена запись: {}: {}'.format(key, value))
 
 
 def get_keys_from_database(database, pattern='*'):
@@ -52,6 +52,13 @@ def get_value_from_database(key, database):
     value = json.loads(value)
 
     return value
+
+
+def clear_database(database):
+    keys = database.keys()
+    for key in keys:
+        database.delete(key)
+        logger.info('БД: удалена запись: {}'.format(key))
 
 
 if __name__ == "__main__":
