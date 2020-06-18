@@ -106,21 +106,27 @@ def add_question_cards_to_database(question_cards, database):
     logger.debug('Вопросы занесены в базу данных')
 
 
-def add_tg_user_to_database(chat_id, value, database):
-    key = 'user_tg_{chat_id}'.format(chat_id=chat_id)
+def get_random_question_card_number(database):
+    pattern = 'question_card_*'
+    keys = redis_tools.get_keys_from_database(database, pattern)
+    random_number = random.randrange(len(keys))
+    question_card_number = keys[random_number]
+
+    return question_card_number
+
+
+def add_user_to_database(chat_id, source, value, database):
+    key = 'user_{source}_{chat_id}'.format(
+            source=source, 
+            chat_id=chat_id,
+        )
     value = {'last_asked_question': value}
     redis_tools.set_data_to_database(key, value, database)
 
     logger.debug('Пользователь добавлен в базу')
 
 
-def get_random_question(database):
-    pattern = 'question_card_*'
-    keys = get_keys_from_database(database, pattern)
-    random_number = random.randrange(len(keys))
-    random_key = keys[random_number]
 
-    return random_key
 
 
 
