@@ -1,5 +1,4 @@
 .env
-bot-tg.py
 bot-vk.py
 quiz-questions/
 __pycache__/
