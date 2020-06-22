@@ -101,7 +101,7 @@ def add_question_cards_to_database(question_cards, database):
     for question_card in enumerate(question_cards):
         key = 'question_card_{}'.format(question_card[0])
         value = question_card[1]
-        set_data_to_database(key, value, database)
+        redis_tools.set_data_to_database(key, value, database)
     
     logger.debug('Вопросы занесены в базу данных')
 
