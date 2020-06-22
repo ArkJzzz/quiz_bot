@@ -27,12 +27,12 @@ logger = logging.getLogger(__file__)
 logger.setLevel(logging.DEBUG)
 
 
-# DB = redis.Redis(
-#     host=settings.redis_host, 
-#     port=settings.redis_port, 
-#     db=settings.redis_db_number, 
-#     password=settings.redis_password,
-# )
+database = redis.Redis(
+    host=settings.redis_host, 
+    port=settings.redis_port, 
+    db=settings.redis_db_number, 
+    password=settings.redis_password,
+)
 
 CHOOSING, TYPING_REPLY = range(2)
 
@@ -62,30 +62,30 @@ def start(update, context):
     return CHOOSING
 
 def new_question(update, context):
-    logger.debug('new_question(update, context)')
-    # question_card_number = quiz_tools.get_random_key(database)
-    # question_card = quiz_tools.get_dict_value(
-    #     key=question_card_number, 
-    #     database=database,
-    # )
-    # chat_id = update.effective_chat.id
-    # quiz_tools.add_user_to_database(
-    #     key='user_tg_{id}'.format(id=chat_id),
-    #     value=question_card_number,
-    #     database=database,
-    # )
-    # logger.debug('user: {}, question_card_number: {number}'.format(
-    #     id=chat_id,
-    #     number=question_card_number,
-    #     )
-    # )
-
-    # question = question_card['Вопрос']
-    # update.message.reply_text(
-    #     text=question,
-    #     reply_markup=REPLY_MARKUP,
-    # )
-    # logger.debug(question_card)
+    question_card_number = quiz_tools.get_random_question_card_number(database)
+    question_card = redis_tools.get_value_from_database(
+            key=question_card_number, 
+            database=database,
+        )
+    chat_id = update.effective_chat.id
+    quiz_tools.add_user_to_database(
+            chat_id=chat_id,
+            source='tg',
+            value=question_card_number,
+            database=database,
+        )
+    logger.debug(
+        'user: {id}, question_card_number: {cq_number}'.format(
+            id=chat_id,
+            cq_number=question_card_number
+        )
+    )
+    question = question_card['question']
+    update.message.reply_text(
+        text=question,
+        reply_markup=REPLY_MARKUP,
+    )   
+    logger.debug(question_card)
 
     return TYPING_REPLY
 
@@ -135,17 +135,17 @@ def error(update, context):
 
 def main():
 
-    database = redis.Redis(
-        host=settings.redis_host, 
-        port=settings.redis_port, 
-        db=settings.redis_db_number, 
-        password=settings.redis_password,
-    )
-
-    # quiz_tools.add_question_cards_to_database(
-    #     files_dir=settings.quiz_question_dir, 
-    #     database=DB,
+    # database = redis.Redis(
+    #     host=settings.redis_host, 
+    #     port=settings.redis_port, 
+    #     db=settings.redis_db_number, 
+    #     password=settings.redis_password,
     # )
+
+    files_dir = settings.quiz_question_dir
+    logger.debug('Files dir: {}'.format(files_dir))
+
+
 
     updater = Updater(
         settings.telegram_token, 
@@ -183,6 +183,12 @@ def main():
     updater.dispatcher.add_handler(conv_handler)
 
     try:
+        # question_cards = quiz_tools.get_question_cards(files_dir)
+        # quiz_tools.add_question_cards_to_database(
+        #         question_cards, 
+        #         database,
+        #     )
+
         logger.debug('Стартуем бота')
         updater.start_polling()
 
