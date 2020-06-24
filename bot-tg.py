@@ -27,20 +27,16 @@ logger = logging.getLogger(__file__)
 logger.setLevel(logging.DEBUG)
 
 
-database = redis.Redis(
+DATABASE = redis.Redis(
     host=settings.redis_host, 
     port=settings.redis_port, 
     db=settings.redis_db_number, 
     password=settings.redis_password,
 )
-
-CHOOSING, TYPING_REPLY = range(2)
-
 KEYBOARD = [
     ['Новый вопрос'],
     ['Сдаться'],
 ]
-
 REPLY_MARKUP = ReplyKeyboardMarkup(
     KEYBOARD, 
     resize_keyboard=True,
@@ -51,104 +47,74 @@ REPLY_MARKUP = ReplyKeyboardMarkup(
 def start(update, context):
     logger.debug('new start')
     chat_id=update.effective_chat.id
-    text='Привет, это бот для викторин!'
-
+    text='Привет, это бот для викторин!\nНажми "Новый вопрос", чтобы начать.'
     context.bot.send_message(
         chat_id=chat_id,
         text=text, 
         reply_markup=REPLY_MARKUP
     )
 
-    return CHOOSING
 
-def new_question(update, context):
-    question_card_number = quiz_tools.get_random_question_card_number(database)
+def handle_new_question(update, context):
+    question_card_number = quiz_tools.get_random_question_card_number(DATABASE)
     question_card = redis_tools.get_value_from_database(
             key=question_card_number, 
-            database=database,
+            database=DATABASE,
         )
     chat_id = update.effective_chat.id
     quiz_tools.add_user_to_database(
             chat_id=chat_id,
             source='tg',
             value=question_card_number,
-            database=database,
+            database=DATABASE,
         )
     logger.debug(
-        'user: {id}, question_card_number: {cq_number}'.format(
-            id=chat_id,
-            cq_number=question_card_number
+        'user: {}\nquestion_card_number: {}\n{}'.format(
+            chat_id,
+            question_card_number,
+            question_card,
         )
     )
     question = question_card['question']
     update.message.reply_text(
         text=question,
-        # reply_markup=REPLY_MARKUP,
+        reply_markup=REPLY_MARKUP,
     )   
-    logger.debug(question_card)
-
-    return CHOOSING
 
 
-def capitulate(update, context):
+def handle_capitulate(update, context):
     chat_id = update.effective_chat.id
     last_asked_question = quiz_tools.get_last_asked_question(
         chat_id=chat_id, 
         source='tg', 
-        database=database,
+        database=DATABASE,
         )
-    answer = quiz_tools.get_long_answer(last_asked_question, database)
-    logger.debug(answer)
-
-
-
-
-    # question_card = quiz_tools.get_dict_value(
-    #     key=last_asked_question, 
-    #     database=database,
-    # )
-
-    # full_answer = question_card['Полный ответ']
-
+    answer = quiz_tools.get_long_answer(last_asked_question, DATABASE)
     update.message.reply_text(
         text=answer,
         reply_markup=REPLY_MARKUP,
     )
 
-    return CHOOSING
 
+def handle_answer_attempt(update, context):
+    chat_id = update.effective_chat.id
+    user_answer = update.message.text
+    verdict = quiz_tools.evaluate_answer(
+            user_answer=user_answer, 
+            chat_id=chat_id, 
+            source='tg', 
+            database=DATABASE,
+        )
+    update.message.reply_text(
+        text=verdict,
+        reply_markup=REPLY_MARKUP,
+    )
 
-def received_information(update, context):
-    logger.debug('received_information')
-    # user_data = context.user_data
-    text = update.message.text
-    logger.debug(text)
-
-    # update.message.reply_text(
-    #     'Вы ответили: {}'.format(text),
-    #     reply_markup=REPLY_MARKUP,
-    # )
-
-    return CHOOSING
-
-
-def error(update, context):
-    """Log Errors caused by Updates."""
-    logger.warning('Update "%s" caused error "%s"', update, context.error)
 
 def main():
 
-    # database = redis.Redis(
-    #     host=settings.redis_host, 
-    #     port=settings.redis_port, 
-    #     db=settings.redis_db_number, 
-    #     password=settings.redis_password,
-    # )
-
     files_dir = settings.quiz_question_dir
     logger.debug('Files dir: {}'.format(files_dir))
-
-
 
     updater = Updater(
         settings.telegram_token, 
@@ -157,44 +123,37 @@ def main():
     
     conv_handler = ConversationHandler(
         entry_points=[
-            CommandHandler('start', start,),
+            CommandHandler(
+                'start', 
+                start,
+            ),
+            MessageHandler(
+                Filters.regex('^(Новый вопрос)$'),
+                handle_new_question,
+            ),
+            MessageHandler(
+                Filters.regex('^(Сдаться)$'),
+                handle_capitulate,
+            ),
+            MessageHandler(
+                Filters.text, 
+                handle_answer_attempt,
+            ),
+
         ],
 
-        states={
-            CHOOSING: [
-                MessageHandler(
-                    Filters.regex('^(Новый вопрос)$'),
-                    new_question,
-                ),
-                MessageHandler(
-                    Filters.regex('^(Сдаться)$'),
-                    capitulate,
-                ),
-                MessageHandler(
-                    Filters.text, 
-                    received_information,
-                ),
-            ],
-
-            TYPING_REPLY: [
-                MessageHandler(
-                    Filters.text, 
-                    received_information,
-                ),
-            ],
-        },
-
+        states={},
         fallbacks=[]
     )
 
     updater.dispatcher.add_handler(conv_handler)
 
     try:
-        # question_cards = quiz_tools.get_question_cards(files_dir)
-        # quiz_tools.add_question_cards_to_database(
-        #         question_cards, 
-        #         database,
-        #     )
+        question_cards = quiz_tools.get_question_cards(files_dir)
+        quiz_tools.add_question_cards_to_database(
+                question_cards, 
+                DATABASE,
+            )
 
         logger.debug('Стартуем бота')
         updater.start_polling()

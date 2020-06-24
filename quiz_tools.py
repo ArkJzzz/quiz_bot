@@ -146,6 +146,32 @@ def get_long_answer(question_card_number, database):
     return question_card['long_answer']
 
 
+def evaluate_answer(user_answer, chat_id, source, database):
+    key = get_last_asked_question(chat_id, source, database)
+    question_card = redis_tools.get_value_from_database(key, database)
+
+    exclude_symbols = [',', '.']
+    correct_answer = question_card['short_answer'].lower()
+    user_answer = user_answer.lower()
+
+    for symbol in exclude_symbols:
+        correct_answer = correct_answer.replace(symbol, '')
+        user_answer = user_answer.replace(symbol, '')
+
+    logger.debug('\ncorrect_answer: {}\nuser_answer: {}'.format(
+            correct_answer, user_answer
+        )
+    )
+
+    if correct_answer == user_answer:
+        return 'Правильный ответ!'
+    else: 
+        return 'Ответ неправильный, попробуй еще раз.'
+
+
+
+
+
 
 if __name__ == "__main__":
     print('Эта утилита не предназначена для запуска напрямую')
