@@ -126,7 +126,24 @@ def add_user_to_database(chat_id, source, value, database):
     logger.debug('Пользователь добавлен в базу')
 
 
+def get_last_asked_question(chat_id, source, database):
+    key = 'user_{source}_{chat_id}'.format(
+            source=source, 
+            chat_id=chat_id,
+        )
 
+    user_data = redis_tools.get_value_from_database(key, database)
+
+    return user_data['last_asked_question']
+
+
+def get_long_answer(question_card_number, database):
+    question_card = redis_tools.get_value_from_database(
+            key=question_card_number, 
+            database=database,
+        )
+
+    return question_card['long_answer']
 
 
 

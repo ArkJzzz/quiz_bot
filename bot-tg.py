@@ -83,21 +83,25 @@ def new_question(update, context):
     question = question_card['question']
     update.message.reply_text(
         text=question,
-        reply_markup=REPLY_MARKUP,
+        # reply_markup=REPLY_MARKUP,
     )   
     logger.debug(question_card)
 
-    return TYPING_REPLY
+    return CHOOSING
 
 
 def capitulate(update, context):
-    logger.debug('capitulate(update, context)')
-    # chat_id = update.effective_chat.id
-    # user_data = get_dict_value(
-    #     key='user_tg_{id}'.format(id=chat_id),
-    #     database=database,
-    # )
-    # last_asked_question = user_data['last_asked_question']
+    chat_id = update.effective_chat.id
+    last_asked_question = quiz_tools.get_last_asked_question(
+        chat_id=chat_id, 
+        source='tg', 
+        database=database,
+        )
+    answer = quiz_tools.get_long_answer(last_asked_question, database)
+    logger.debug(answer)
+
+
+
 
     # question_card = quiz_tools.get_dict_value(
     #     key=last_asked_question, 
@@ -106,11 +110,10 @@ def capitulate(update, context):
 
     # full_answer = question_card['Полный ответ']
 
-    # text = update.message.text
-    # update.message.reply_text(
-    #     text=full_answer,
-    #     reply_markup=REPLY_MARKUP,
-    # )
+    update.message.reply_text(
+        text=answer,
+        reply_markup=REPLY_MARKUP,
+    )
 
     return CHOOSING
 
@@ -166,6 +169,10 @@ def main():
                 MessageHandler(
                     Filters.regex('^(Сдаться)$'),
                     capitulate,
+                ),
+                MessageHandler(
+                    Filters.text, 
+                    received_information,
                 ),
             ],
 
