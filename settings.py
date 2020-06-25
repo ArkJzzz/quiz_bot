@@ -8,7 +8,6 @@ from os.path import dirname
 from os.path import abspath
 from os.path import join as joinpath
 
-import redis
 from dotenv import load_dotenv
 
 
@@ -26,6 +25,7 @@ QUIZ_QUESTION_DIR = 'test/'
 quiz_question_dir = joinpath(BASE_DIR, QUIZ_QUESTION_DIR)
 
 telegram_token = getenv('TELEGRAM_TOKEN')
+vk_token = getenv('VK_TOKEN')
 
 redis_host = getenv('REDIS_HOST')
 redis_port = getenv('REDIS_PORT')

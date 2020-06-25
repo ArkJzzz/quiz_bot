@@ -1,5 +1,4 @@
 .env
-bot-vk.py
 quiz-questions/
 __pycache__/
 test*
