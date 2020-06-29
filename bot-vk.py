@@ -5,13 +5,12 @@ __author__ = 'ArkJzzz (arkjzzz@gmail.com)'
 
 import os
 import logging
-import random
+
+import redis
 import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from vk_api.utils import get_random_id
-
-import redis
 
 import settings
 import quiz_tools

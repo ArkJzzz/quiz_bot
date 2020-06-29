@@ -20,7 +20,6 @@ logger = logging.getLogger(__file__)
 logger.setLevel(logging.DEBUG)
 
 
-
 def get_question_cards(files_dir):
     question_cards_from_dir = []
     for root, dirs, files in walkpath(files_dir):

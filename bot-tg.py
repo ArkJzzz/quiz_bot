@@ -5,7 +5,6 @@ __author__ = 'ArkJzzz (arkjzzz@gmail.com)'
 
 import sys
 import logging
-# import random
 
 import redis
 from telegram import InlineKeyboardButton
