@@ -45,7 +45,7 @@ TELEGRAM_TOKEN=<Ваш токен>
 VK_TOKEN=<Ваш токен>
 REDIS_HOST=<Адрес БД>
 REDIS_PORT=<Порт>
-REDIS_DB=<Номер БД, по умолчанию 1>
+REDIS_DB=<Номер БД, по умолчанию 0>
 REDIS_PASSWORD=<Пароль>
 ```
 
