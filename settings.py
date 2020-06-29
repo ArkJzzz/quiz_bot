@@ -20,15 +20,12 @@ logger.setLevel(logging.DEBUG)
 
 load_dotenv()
 
-BASE_DIR = dirname(abspath(__file__))
-QUIZ_QUESTION_DIR = 'test/'
-quiz_question_dir = joinpath(BASE_DIR, QUIZ_QUESTION_DIR)
-
 telegram_token = getenv('TELEGRAM_TOKEN')
+
 vk_token = getenv('VK_TOKEN')
 
 redis_host = getenv('REDIS_HOST')
 redis_port = getenv('REDIS_PORT')
-redis_db_number = 0
+redis_db_number = getenv('REDIS_DB')
 redis_password = getenv('REDIS_PASSWORD')
 

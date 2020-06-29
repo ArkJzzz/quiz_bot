@@ -3,10 +3,13 @@ __author__ = 'ArkJzzz (arkjzzz@gmail.com)'
 
 
 import logging
+import argparse
+from os.path import dirname
+from os.path import abspath
+from os.path import join as joinpath
 
 import redis
 
-import settings
 import quiz_tools
 import redis_tools
 
@@ -17,16 +20,18 @@ logger.setLevel(logging.DEBUG)
 
 def main():
 
-    DATABASE = redis.Redis(
-        host=settings.redis_host, 
-        port=settings.redis_port, 
-        db=settings.redis_db_number, 
-        password=settings.redis_password,
-    )
+    parser = argparse.ArgumentParser(
+        description='Утилита для занесения вопросов викторины в базу данных'
+        )
+    parser.add_argument('d', help='директория, в которой находятся файлы с вопросами')
 
-    files_dir = settings.quiz_question_dir
+    args = parser.parse_args()
+
+    BASE_DIR = dirname(abspath(__file__))
+    files_dir = joinpath(BASE_DIR, args.d)
     logger.debug('Files dir: {}'.format(files_dir))
 
+    DATABASE = redis_tools.connect_to_redis()
 
     try:
         question_cards = quiz_tools.get_question_cards(files_dir)

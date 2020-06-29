@@ -2,8 +2,6 @@
 __author__ = 'ArkJzzz (arkjzzz@gmail.com)'
 
 
-
-import sys
 import logging
 
 import redis
@@ -26,12 +24,7 @@ logger = logging.getLogger(__file__)
 logger.setLevel(logging.DEBUG)
 
 
-DATABASE = redis.Redis(
-    host=settings.redis_host, 
-    port=settings.redis_port, 
-    db=settings.redis_db_number, 
-    password=settings.redis_password,
-)
+DATABASE = redis_tools.connect_to_redis()
 KEYBOARD = [
     ['Новый вопрос'],
     ['Сдаться'],
@@ -111,10 +104,6 @@ def handle_answer_attempt(update, context):
 
 
 def main():
-
-    files_dir = settings.quiz_question_dir
-    logger.debug('Files dir: {}'.format(files_dir))
-
     updater = Updater(
         settings.telegram_token, 
         use_context=True,
@@ -148,12 +137,6 @@ def main():
     updater.dispatcher.add_handler(conv_handler)
 
     try:
-        question_cards = quiz_tools.get_question_cards(files_dir)
-        quiz_tools.add_question_cards_to_database(
-                question_cards, 
-                DATABASE,
-            )
-
         logger.debug('Стартуем бота')
         updater.start_polling()
 

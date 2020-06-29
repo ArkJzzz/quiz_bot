@@ -3,7 +3,6 @@
 __author__ = 'ArkJzzz (arkjzzz@gmail.com)'
 
 
-import os
 import logging
 
 import redis
@@ -20,12 +19,7 @@ import redis_tools
 logger = logging.getLogger(__file__)
 logger.setLevel(logging.DEBUG)
 
-DATABASE = redis.Redis(
-    host=settings.redis_host, 
-    port=settings.redis_port, 
-    db=settings.redis_db_number, 
-    password=settings.redis_password,
-)
+DATABASE = redis_tools.connect_to_redis()
 
 
 def handle_new_question(event, vk, keyboard):
@@ -104,18 +98,14 @@ def main():
     longpoll = VkLongPoll(vk_session)
     vk = vk_session.get_api()
 
-    logger.debug('все готово')
-
-    # do
-
     keyboard = VkKeyboard(one_time=True)
-
     keyboard.add_button('Новый вопрос', color=VkKeyboardColor.DEFAULT)
     keyboard.add_line()
     keyboard.add_button('Сдаться', color=VkKeyboardColor.DEFAULT)
 
-
+    # do
     try:
+        logger.debug('Стартуем бота')
         for event in longpoll.listen():
             if event.type == VkEventType.MESSAGE_NEW and event.to_me:
                 if event.text == 'Новый вопрос':
