@@ -58,10 +58,11 @@ def get_question_cards_from_file(filename):
             if question_card['question']:
                 question_card['long_answer'] = long_answer
                 question_cards_from_file.append(question_card)
+                logger.debug(question_card)
+                print()
                 question_card = {key: None for key in keys}
             question_card['question'] = clear_text_block(text_block)
-
-        long_answer = ''
+        
         short_answer = re.search(r'^Ответ:', text_block)
         if short_answer:
             short_answer = clear_text_block(text_block)

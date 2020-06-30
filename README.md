@@ -79,6 +79,6 @@ python3 bot-vk.py
 ------
 Примеры работающих ботов:
 
-- [telegram](tg://resolve?domain=arkjzzz_quiz_bot)
+- telegram [@arkjzzz_quiz_bot](tg://resolve?domain=arkjzzz_quiz_bot)
 
-- [vkontakte](https://vk.com/im?sel=-189341550)
+- vkontakte [ArkJzzz_tech](https://vk.com/im?sel=-189341550)

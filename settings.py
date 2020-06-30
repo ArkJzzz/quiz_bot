@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 
 
 logging.basicConfig(
-    format='%(asctime)s %(name)s - %(message)s', 
+    format='%(asctime)s %(name)s:%(lineno)d - %(message)s', 
     datefmt='%Y-%b-%d %H:%M:%S (%Z)',
 )
 logger = logging.getLogger(__file__)
