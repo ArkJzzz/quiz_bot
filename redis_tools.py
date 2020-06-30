@@ -48,6 +48,7 @@ def get_keys_from_database(database, pattern='*'):
 
 
 def get_value_from_database(key, database):
+    logger.debug(key)
     value = database.get(key)
     value = json.loads(value)
 

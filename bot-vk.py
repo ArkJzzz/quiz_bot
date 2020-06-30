@@ -88,7 +88,7 @@ def send_text_message(event, vk, keyboard):
         peer_id = event.user_id,
         random_id=get_random_id(),
         keyboard=keyboard.get_keyboard(),
-        message=event.text,
+        message='Привет, это бот для викторин!\nНажми "Новый вопрос", чтобы начать.',
     )
     
 
@@ -108,14 +108,18 @@ def main():
         logger.debug('Стартуем бота')
         for event in longpoll.listen():
             if event.type == VkEventType.MESSAGE_NEW and event.to_me:
-                if event.text == 'Новый вопрос':
+                if event.text == 'Привет':
+                    send_text_message(event, vk, keyboard)
+                elif event.text == 'Новый вопрос':
                     handle_new_question(event, vk, keyboard)
                 elif event.text == 'Сдаться':
                     handle_capitulate(event, vk, keyboard)
-                else: 
+                else:
                     handle_answer_attempt(event, vk, keyboard)
     except KeyboardInterrupt:
         logger.info('Бот остановлен')
+    except ConnectionError:
+        logger.error('Connection aborted')
     except Exception  as err:
         logger.error('Бот упал с ошибкой:')
         logger.error(err)
