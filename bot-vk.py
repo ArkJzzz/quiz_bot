@@ -4,12 +4,16 @@ __author__ = 'ArkJzzz (arkjzzz@gmail.com)'
 
 
 import logging
+import time
 
+import requests
 import redis
 import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from vk_api.utils import get_random_id
+
+
 
 import settings
 import quiz_tools
@@ -120,6 +124,9 @@ def main():
         logger.info('Бот остановлен')
     except ConnectionError:
         logger.error('Connection aborted')
+    except requests.exceptions.ReadTimeout:
+        logger.error('Переподключение к серверам ВК')
+        time.sleep(3)
     except Exception  as err:
         logger.error('Бот упал с ошибкой:')
         logger.error(err)
