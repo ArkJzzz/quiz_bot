@@ -21,7 +21,7 @@ import quiz_tools
 import redis_tools
 
 logger = logging.getLogger(__file__)
-logger.setLevel(logging.DEBUG)
+
 
 
 DATABASE = redis_tools.connect_to_redis()
@@ -104,6 +104,8 @@ def handle_answer_attempt(update, context):
 
 
 def main():
+    logger.setLevel(logging.DEBUG)
+    
     updater = Updater(
         settings.telegram_token, 
         use_context=True,

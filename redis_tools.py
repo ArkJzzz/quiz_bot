@@ -17,7 +17,6 @@ import settings
 
 
 logger = logging.getLogger(__file__)
-logger.setLevel(logging.DEBUG)
 
 
 def connect_to_redis():
@@ -63,6 +62,7 @@ def clear_database(database):
 
 
 if __name__ == "__main__":
+    logger.setLevel(logging.DEBUG)
     print('Эта утилита не предназначена для запуска напрямую')
 
 

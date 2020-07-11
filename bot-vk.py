@@ -21,7 +21,6 @@ import redis_tools
 
 
 logger = logging.getLogger(__file__)
-logger.setLevel(logging.DEBUG)
 
 DATABASE = redis_tools.connect_to_redis()
 
@@ -98,6 +97,7 @@ def send_text_message(event, vk, keyboard):
 
 def main():
     # init
+    logger.setLevel(logging.DEBUG)
     vk_session = vk_api.VkApi(token=settings.vk_token) 
     longpoll = VkLongPoll(vk_session)
     vk = vk_session.get_api()

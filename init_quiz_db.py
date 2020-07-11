@@ -15,11 +15,10 @@ import redis_tools
 
 
 logger = logging.getLogger(__file__)
-logger.setLevel(logging.DEBUG)
 
 
 def main():
-
+    logger.setLevel(logging.DEBUG)
     parser = argparse.ArgumentParser(
         description='Утилита для занесения вопросов викторины в базу данных'
         )
@@ -27,17 +26,17 @@ def main():
 
     args = parser.parse_args()
 
-    BASE_DIR = dirname(abspath(__file__))
-    files_dir = joinpath(BASE_DIR, args.d)
+    base_dir = dirname(abspath(__file__))
+    files_dir = joinpath(base_dir, args.d)
     logger.debug('Files dir: {}'.format(files_dir))
 
-    DATABASE = redis_tools.connect_to_redis()
+    database = redis_tools.connect_to_redis()
 
     try:
         question_cards = quiz_tools.get_question_cards(files_dir)
         quiz_tools.add_question_cards_to_database(
                 question_cards, 
-                DATABASE,
+                database,
             )
 
     except FileNotFoundError:

@@ -17,7 +17,6 @@ import redis_tools
 
 
 logger = logging.getLogger(__file__)
-logger.setLevel(logging.DEBUG)
 
 
 def get_question_cards(files_dir):
@@ -31,7 +30,9 @@ def get_question_cards(files_dir):
     
     return question_cards_from_dir
 
-
+# FIXME 
+# Считывание файла полезно отделить от парсинга, чтобы было проще тестировать сложную 
+# логику, не приходилось возиться с кучей файлов.
 def get_question_cards_from_file(filename):
     ''' Читает файл с вопросами и возвращает список словарей вида:
     {
@@ -147,6 +148,8 @@ def get_long_answer(question_card_number, database):
     return question_card['long_answer']
 
 
+# FIXME 
+# вынесите условие с выбором ответа наружу.
 def evaluate_answer(user_answer, chat_id, source, database):
     key = get_last_asked_question(chat_id, source, database)
     question_card = redis_tools.get_value_from_database(key, database)
@@ -170,11 +173,8 @@ def evaluate_answer(user_answer, chat_id, source, database):
         return 'Ответ неправильный, попробуй еще раз.'
 
 
-
-
-
-
 if __name__ == "__main__":
+    logger.setLevel(logging.DEBUG)
     print('Эта утилита не предназначена для запуска напрямую')
 
 
