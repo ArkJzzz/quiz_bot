@@ -31,6 +31,12 @@
 
     Получите адрес БД вида `redis-13965.f18.us-east-4-9.wc1.cloud.redislabs.com`, его порт вида: `16635` и его пароль.
 
+- **Файл с вопросами**
+
+    Создайте или скачайте файлы с вопросами
+
+    [пример файла с вопросами](https://github.com/ArkJzzz/quiz_bot/blob/master/question_file_example.txt)
+
 
 ## Установка
 
