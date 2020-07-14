@@ -20,7 +20,7 @@ import quiz_tools
 import redis_tools
 
 
-logger = logging.getLogger(__file__)
+logger = logging.getLogger('bot_vk')
 
 DATABASE = redis_tools.connect_to_redis()
 
@@ -39,7 +39,7 @@ def handle_new_question(event, vk, keyboard):
             database=DATABASE,
         )
     logger.debug(
-        'user: {}\nquestion_card_number: {}\n{}'.format(
+        'user: {}\tquestion_card_number: {}\n{}'.format(
             chat_id,
             question_card_number,
             question_card,
@@ -97,7 +97,6 @@ def send_text_message(event, vk, keyboard):
 
 def main():
     # init
-    logger.setLevel(logging.DEBUG)
     vk_session = vk_api.VkApi(token=settings.vk_token) 
     longpoll = VkLongPoll(vk_session)
     vk = vk_session.get_api()

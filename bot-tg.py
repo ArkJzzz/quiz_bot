@@ -20,8 +20,7 @@ import settings
 import quiz_tools
 import redis_tools
 
-logger = logging.getLogger(__file__)
-
+logger = logging.getLogger('bot_tg')
 
 
 DATABASE = redis_tools.connect_to_redis()
@@ -104,8 +103,6 @@ def handle_answer_attempt(update, context):
 
 
 def main():
-    logger.setLevel(logging.DEBUG)
-    
     updater = Updater(
         settings.telegram_token, 
         use_context=True,
@@ -138,6 +135,10 @@ def main():
 
     updater.dispatcher.add_handler(conv_handler)
 
+    # FIXME 
+    # Добавьте обработчик ошибок в TG 
+    # Telegram-бот так устроен, что сам перехватает все ошибки 
+    # и чтобы обработать их необходимо регистрировать error handler.
     try:
         logger.debug('Стартуем бота')
         updater.start_polling()

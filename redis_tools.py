@@ -16,7 +16,7 @@ from dotenv import load_dotenv
 import settings
 
 
-logger = logging.getLogger(__file__)
+logger = logging.getLogger('redis_tools')
 
 
 def connect_to_redis():
@@ -62,7 +62,6 @@ def clear_database(database):
 
 
 if __name__ == "__main__":
-    logger.setLevel(logging.DEBUG)
     print('Эта утилита не предназначена для запуска напрямую')
 
 

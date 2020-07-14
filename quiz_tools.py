@@ -16,7 +16,7 @@ from dotenv import load_dotenv
 import redis_tools
 
 
-logger = logging.getLogger(__file__)
+logger = logging.getLogger('quiz_tools')
 
 
 def get_question_cards(files_dir):
@@ -98,7 +98,8 @@ def clear_text_block(text_block):
 
     return text_block
 
-
+# FIXME
+# Здесь лучше подойдёт hset.
 def add_question_cards_to_database(question_cards, database):
     for question_card in enumerate(question_cards):
         key = 'question_card_{}'.format(question_card[0])
@@ -174,7 +175,6 @@ def evaluate_answer(user_answer, chat_id, source, database):
 
 
 if __name__ == "__main__":
-    logger.setLevel(logging.DEBUG)
     print('Эта утилита не предназначена для запуска напрямую')
 
 
