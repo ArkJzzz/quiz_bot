@@ -8,11 +8,13 @@ import redis
 from telegram import InlineKeyboardButton
 from telegram import InlineKeyboardMarkup
 from telegram import ReplyKeyboardMarkup
+from telegram import Update
 from telegram.ext import Updater
 from telegram.ext import CommandHandler
 from telegram.ext import Filters
 from telegram.ext import MessageHandler
 from telegram.ext import CallbackQueryHandler
+from telegram.ext import CallbackContext
 from telegram.ext import ConversationHandler
 from telegram.ext import RegexHandler
 
@@ -102,6 +104,22 @@ def handle_answer_attempt(update, context):
     )
 
 
+def error_handler(update: Update, context: CallbackContext):
+    try:
+        raise context.error
+    except FileNotFoundError:
+        logger.error('Ошибка: Файл не найден', exc_info=True)
+    except redis.exceptions.AuthenticationError:
+        logger.error('Подключение к базе данных: ошибка аутентификации')
+    except Exception  as err:
+        logger.error('Бот упал с ошибкой:')
+        logger.error(err)
+        logger.debug(err, exc_info=True)
+
+
+
+
+
 def main():
     updater = Updater(
         settings.telegram_token, 
@@ -134,24 +152,10 @@ def main():
     )
 
     updater.dispatcher.add_handler(conv_handler)
+    updater.dispatcher.add_error_handler(error_handler)
 
-    # FIXME 
-    # Добавьте обработчик ошибок в TG 
-    # Telegram-бот так устроен, что сам перехватает все ошибки 
-    # и чтобы обработать их необходимо регистрировать error handler.
-    try:
-        logger.debug('Стартуем бота')
-        updater.start_polling()
-
-    except FileNotFoundError:
-        logger.error('Ошибка: Файл не найден', exc_info=True)
-    except redis.exceptions.AuthenticationError:
-        logger.error('Подключение к базе данных: ошибка аутентификации')
-    except Exception  as err:
-        logger.error('Бот упал с ошибкой:')
-        logger.error(err)
-        logger.debug(err, exc_info=True)
-
+    logger.debug('Стартуем бота')
+    updater.start_polling()
     updater.idle()
     logger.info('Бот остановлен')
 
