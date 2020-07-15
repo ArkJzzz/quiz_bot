@@ -24,27 +24,32 @@ def get_question_cards(files_dir):
     for root, dirs, files in walkpath(files_dir):
         for filename in files:
             filename = joinpath(root, filename)
-            question_cards_from_file = get_question_cards_from_file(filename)
+            questions_data = read_file(filename)
+            question_cards_from_file = get_question_cards_from_data(
+                                        questions_data
+                                    )
             question_cards_from_dir.extend(question_cards_from_file)
             logger.info('Завершено чтение файла {}'.format(filename))
     
     return question_cards_from_dir
 
-# FIXME 
-# Считывание файла полезно отделить от парсинга, чтобы было проще тестировать сложную 
-# логику, не приходилось возиться с кучей файлов.
-def get_question_cards_from_file(filename):
-    ''' Читает файл с вопросами и возвращает список словарей вида:
+
+def read_file(filename):
+    with open(filename, 'r', encoding='KOI8-R') as my_file:
+        questions_data = my_file.read()
+    questions_data = questions_data.split('\n\n')
+
+    return questions_data
+
+
+def get_question_cards_from_data(questions_data):
+    ''' возвращает список словарей вида:
     {
         'question': 'Текст вопроса',
         'short_answer': 'Ответ' ,
         'long_answer': 'Расширенный ответ, включая комментарий, источник, автора'
     }
     '''
-    with open(filename, 'r', encoding='KOI8-R') as my_file:
-        questions_data = my_file.read()
-    questions_data = questions_data.split('\n\n')
-
     question_cards_from_file = []
     keys = [
         'question',
@@ -149,22 +154,28 @@ def get_long_answer(question_card_number, database):
     return question_card['long_answer']
 
 
-# FIXME 
-# вынесите условие с выбором ответа наружу.
-def evaluate_answer(user_answer, chat_id, source, database):
+def get_correct_answer(user_answer, chat_id, source, database):
     key = get_last_asked_question(chat_id, source, database)
     question_card = redis_tools.get_value_from_database(key, database)
-
-    exclude_symbols = [',', '.']
     correct_answer = question_card['short_answer'].lower()
-    user_answer = user_answer.lower()
+    return correct_answer
 
+def clear_answer(answer):
+    exclude_symbols = [',', '.', '\"']
     for symbol in exclude_symbols:
-        correct_answer = correct_answer.replace(symbol, '')
-        user_answer = user_answer.replace(symbol, '')
+        answer = answer.replace(symbol, '')
+    return answer
+
+
+def evaluate_answer(user_answer, chat_id, source, database):
+    correct_answer = get_correct_answer(user_answer, chat_id, source, database)
+    correct_answer = clear_answer(correct_answer)
+    user_answer = user_answer.lower()
+    user_answer = clear_answer(user_answer)
 
     logger.debug('\ncorrect_answer: {}\nuser_answer: {}'.format(
-            correct_answer, user_answer
+            correct_answer, 
+            user_answer,
         )
     )
 
