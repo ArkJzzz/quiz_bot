@@ -23,7 +23,7 @@ def get_question_cards(files_dir):
     for root, dirs, files in walkpath(files_dir):
         for filename in files:
             filename = joinpath(root, filename)
-            questions_data = read_file(filename)
+            questions_data = read_questions_file(filename)
             question_cards_from_file = get_question_cards_from_data(
                                         questions_data
                                     )
@@ -33,7 +33,7 @@ def get_question_cards(files_dir):
     return question_cards_from_dir
 
 
-def read_file(filename):
+def read_questions_file(filename):
     with open(filename, 'r', encoding='KOI8-R') as my_file:
         questions_data = my_file.read()
     questions_data = questions_data.split('\n\n')
