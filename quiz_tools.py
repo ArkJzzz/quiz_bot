@@ -11,9 +11,8 @@ from os import getenv
 from os import walk as walkpath
 from os.path import join as joinpath
 
+import redis
 from dotenv import load_dotenv
-
-import redis_tools
 
 
 logger = logging.getLogger('quiz_tools')
@@ -43,37 +42,27 @@ def read_file(filename):
 
 
 def get_question_cards_from_data(questions_data):
-    ''' возвращает список словарей вида:
-    {
-        'question': 'Текст вопроса',
-        'short_answer': 'Ответ' ,
-        'long_answer': 'Расширенный ответ, включая комментарий, источник, автора'
-    }
+    ''' возвращает список вопросных карточек, каждая карточка вида:
+    [questoin, short_answer, long_answer]
     '''
     question_cards_from_file = []
-    keys = [
-        'question',
-        'short_answer',
-        'long_answer',
-    ]
-    question_card = {key: None for key in keys}
+    question_card = [None for i in range(3)]
 
     for text_block in questions_data:
         question = re.search(r'^Вопрос \d*:', text_block)
         if question:
-            if question_card['question']:
-                question_card['long_answer'] = long_answer
+            if question_card and question_card[0]:
+                question_card[2] = long_answer
                 question_cards_from_file.append(question_card)
                 logger.debug(question_card)
-                print()
-                question_card = {key: None for key in keys}
-            question_card['question'] = clear_text_block(text_block)
-        
+                question_card = [None for i in range(3)]
+            question_card[0] = clear_text_block(text_block)
+
         short_answer = re.search(r'^Ответ:', text_block)
         if short_answer:
             short_answer = clear_text_block(text_block)
             short_answer = re.sub(r'[\[\]\(\)]' , '', short_answer)
-            question_card['short_answer'] = short_answer
+            question_card[1] = short_answer
             long_answer = 'Ответ:\n{}\n\n'.format(short_answer)
 
         comment = re.search(r'^Комментарий:', text_block)
@@ -103,62 +92,83 @@ def clear_text_block(text_block):
 
     return text_block
 
-# FIXME
-# Здесь лучше подойдёт hset.
+
 def add_question_cards_to_database(question_cards, database):
-    for question_card in enumerate(question_cards):
-        key = 'question_card_{}'.format(question_card[0])
-        value = question_card[1]
-        redis_tools.set_data_to_database(key, value, database)
+    for question_card in question_cards:
+        add_question_card_to_database(question_card, database)
     
     logger.debug('Вопросы занесены в базу данных')
 
 
+def add_question_card_to_database(question_card, database):
+    value = json.dumps(question_card)
+    database.rpush('question_cards', value)
+    logger.info('В БД добавлена запись: {}'.format(question_card))
+
+
 def get_random_question_card_number(database):
-    pattern = 'question_card_*'
-    keys = redis_tools.get_keys_from_database(database, pattern)
-    random_number = random.randrange(len(keys))
-    question_card_number = keys[random_number]
+    num_of_question_cards = database.llen('question_cards')
+    logger.debug('Всего карточек в базе: {}'.format(num_of_question_cards))
+    random_number = random.randrange(num_of_question_cards)
+    logger.debug('random_number: {}'.format(random_number))
 
-    return question_card_number
+    question_card = database.lindex('question_cards', random_number)
 
-
-def add_user_to_database(chat_id, source, value, database):
-    key = 'user_{source}_{chat_id}'.format(
-            source=source, 
-            chat_id=chat_id,
+    logger.debug('Выбрана карточка: : {}'.format(
+            json.loads(question_card)
         )
-    value = {'last_asked_question': value}
-    redis_tools.set_data_to_database(key, value, database)
+    )
 
-    logger.debug('Пользователь добавлен в базу')
+    return random_number
+
+
+def add_userdata_to_database(chat_id, source, question_card_number, database):
+    hash_name = '{source}_users'.format(source=source)
+    database.hset(hash_name, chat_id, question_card_number)
+
+    logger.info('В БД добавлена запись о пользователе: {}: {}'.format(
+                        hash_name,
+                        chat_id,
+                    )
+                )
 
 
 def get_last_asked_question(chat_id, source, database):
-    key = 'user_{source}_{chat_id}'.format(
-            source=source, 
-            chat_id=chat_id,
-        )
+    hash_name = '{source}_users'.format(source=source)
+    last_asked_question = database.hget(hash_name, chat_id)
+    logger.debug('last_asked_question: {}'.format(last_asked_question.decode()))
 
-    user_data = redis_tools.get_value_from_database(key, database)
+    return last_asked_question.decode()
 
-    return user_data['last_asked_question']
+
+def get_question(question_card_number, database):
+    question_card = database.lindex('question_cards', question_card_number)
+    question_card = json.loads(question_card)
+
+    logger.debug('question: {}'.format(question_card[0]))
+
+    return question_card[0]
+
+
+def get_correct_answer(chat_id, source, database):
+    question_card_number = get_last_asked_question(chat_id, source, database)
+    question_card = database.lindex('question_cards', question_card_number)
+    question_card = json.loads(question_card)
+    correct_answer = question_card[1].lower()
+
+    logger.debug('short answer: {}'.format(question_card[1]))
+
+    return correct_answer
 
 
 def get_long_answer(question_card_number, database):
-    question_card = redis_tools.get_value_from_database(
-            key=question_card_number, 
-            database=database,
-        )
+    question_card = database.lindex('question_cards', question_card_number)
+    question_card = json.loads(question_card)
 
-    return question_card['long_answer']
+    logger.debug('long answer: {}'.format(question_card[2]))
 
+    return question_card[2]
 
-def get_correct_answer(user_answer, chat_id, source, database):
-    key = get_last_asked_question(chat_id, source, database)
-    question_card = redis_tools.get_value_from_database(key, database)
-    correct_answer = question_card['short_answer'].lower()
-    return correct_answer
 
 def clear_answer(answer):
     exclude_symbols = [',', '.', '\"']
@@ -168,12 +178,12 @@ def clear_answer(answer):
 
 
 def evaluate_answer(user_answer, chat_id, source, database):
-    correct_answer = get_correct_answer(user_answer, chat_id, source, database)
+    correct_answer = get_correct_answer(chat_id, source, database)
     correct_answer = clear_answer(correct_answer)
     user_answer = user_answer.lower()
     user_answer = clear_answer(user_answer)
 
-    logger.debug('\ncorrect_answer: {}\nuser_answer: {}'.format(
+    logger.debug('evaluate_answer:\ncorrect_answer: {}\nuser_answer: {}'.format(
             correct_answer, 
             user_answer,
         )
@@ -187,10 +197,3 @@ def evaluate_answer(user_answer, chat_id, source, database):
 
 if __name__ == "__main__":
     print('Эта утилита не предназначена для запуска напрямую')
-
-
-
-
-
-        
-

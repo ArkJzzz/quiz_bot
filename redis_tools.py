@@ -30,10 +30,10 @@ def connect_to_redis():
     return database
 
 
-def set_data_to_database(key, value, database):
-    value = json.dumps(value)
-    database.set(key, value)
-    logger.info('БД: добавлена запись: {}'.format(key))
+def add_card_to_database(question_card, database):
+    value = json.dumps(question_card)
+    database.rpush('question_cards', value)
+    logger.info('БД: добавлена запись: {}'.format(question_card))
 
 
 def get_keys_from_database(database, pattern='*'):

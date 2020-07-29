@@ -49,26 +49,15 @@ def start(update, context):
 
 
 def handle_new_question(update, context):
-    question_card_number = quiz_tools.get_random_question_card_number(DATABASE)
-    question_card = redis_tools.get_value_from_database(
-            key=question_card_number, 
-            database=DATABASE,
-        )
     chat_id = update.effective_chat.id
-    quiz_tools.add_user_to_database(
+    question_card_number = quiz_tools.get_random_question_card_number(DATABASE)
+    quiz_tools.add_userdata_to_database(
             chat_id=chat_id,
             source='tg',
-            value=question_card_number,
+            question_card_number=question_card_number,
             database=DATABASE,
         )
-    logger.debug(
-        'user: {}\nquestion_card_number: {}\n{}'.format(
-            chat_id,
-            question_card_number,
-            question_card,
-        )
-    )
-    question = question_card['question']
+    question = quiz_tools.get_question(question_card_number, DATABASE)
     update.message.reply_text(
         text=question,
         reply_markup=REPLY_MARKUP,
@@ -77,12 +66,12 @@ def handle_new_question(update, context):
 
 def handle_capitulate(update, context):
     chat_id = update.effective_chat.id
-    last_asked_question = quiz_tools.get_last_asked_question(
-        chat_id=chat_id, 
-        source='tg', 
-        database=DATABASE,
+    question_card_number = quiz_tools.get_last_asked_question(
+            chat_id=chat_id,
+            source='tg',
+            database=DATABASE,
         )
-    answer = quiz_tools.get_long_answer(last_asked_question, DATABASE)
+    answer = quiz_tools.get_long_answer(question_card_number, DATABASE)
     update.message.reply_text(
         text=answer,
         reply_markup=REPLY_MARKUP,

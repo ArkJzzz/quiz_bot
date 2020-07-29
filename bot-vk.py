@@ -26,26 +26,21 @@ DATABASE = redis_tools.connect_to_redis()
 
 
 def handle_new_question(event, vk, keyboard):
-    question_card_number = quiz_tools.get_random_question_card_number(DATABASE)
-    question_card = redis_tools.get_value_from_database(
-            key=question_card_number, 
-            database=DATABASE,
-        )
     chat_id = event.user_id
-    quiz_tools.add_user_to_database(
-            chat_id=chat_id,
-            source='vk',
-            value=question_card_number,
-            database=DATABASE,
-        )
+    question_card_number = quiz_tools.get_random_question_card_number(DATABASE)
+    quiz_tools.add_userdata_to_database(
+        chat_id=chat_id,
+        source='vk',
+        question_card_number=question_card_number,
+        database=DATABASE,
+    )
+    question = quiz_tools.get_question(question_card_number, DATABASE)
     logger.debug(
-        'user: {}\tquestion_card_number: {}\n{}'.format(
+        'user: {}\tquestion_card_number: {}'.format(
             chat_id,
             question_card_number,
-            question_card,
         )
     )
-    question = question_card['question']
 
     vk.messages.send(
         peer_id = chat_id,
@@ -56,12 +51,12 @@ def handle_new_question(event, vk, keyboard):
 
 def handle_capitulate(event, vk, keyboard):
     chat_id = event.user_id
-    last_asked_question = quiz_tools.get_last_asked_question(
-        chat_id=chat_id, 
-        source='vk', 
-        database=DATABASE,
+    question_card_number = quiz_tools.get_last_asked_question(
+            chat_id=chat_id,
+            source='vk',
+            database=DATABASE,
         )
-    answer = quiz_tools.get_long_answer(last_asked_question, DATABASE)
+    answer = quiz_tools.get_long_answer(question_card_number, DATABASE)
     vk.messages.send(
         peer_id = chat_id,
         random_id=get_random_id(),
