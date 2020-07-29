@@ -42,9 +42,12 @@ def read_file(filename):
 
 
 def get_question_cards_from_data(questions_data):
-    ''' возвращает список вопросных карточек, каждая карточка вида:
-    [questoin, short_answer, long_answer]
-    '''
+    """Возвращает список вопросных карточек.
+
+    Каждая карточка следующего вида:
+        [questoin, short_answer, long_answer]
+    """
+
     question_cards_from_file = []
     question_card = [None for i in range(3)]
 
@@ -84,7 +87,7 @@ def get_question_cards_from_data(questions_data):
 
 
 def clear_text_block(text_block):
-    '''Удаляет первую строку, лишние переносы строки и пробелы'''
+    """Удаляет первую строку, лишние переносы строки и пробелы"""
 
     text_block = text_block.split('\n')[1:]
     text_block = ' '.join(text_block)
