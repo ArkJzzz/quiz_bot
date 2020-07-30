@@ -1,4 +1,4 @@
-# support-bot 
+# quiz-bot 
 
 Бот-викторина для Telegram и группы ВКонтакте.
 
@@ -21,21 +21,21 @@
 
 - **ВКонтакте**
 
-    Создайте группу во [ВКонтакте](https://vk.com/groups?tab=admin);
+    Создайте группу во [ВКонтакте](https://vk.com/groups?tab=admin).
 
     Получите токен группы в настройках сообщества.
 
 - **Redis**
 
-    Зарегистрируйтесь на [redislabs](https://redislabs.com/)
+    Зарегистрируйтесь на [redislabs](https://redislabs.com/).
 
     Получите адрес БД вида `redis-13965.f18.us-east-4-9.wc1.cloud.redislabs.com`, его порт вида: `16635` и его пароль.
 
 - **Файл с вопросами**
 
-    Создайте или скачайте файлы с вопросами
+    Создайте или скачайте файлы с вопросами.
 
-    [пример файла с вопросами](https://github.com/ArkJzzz/quiz_bot/blob/master/question_file_example.txt)
+    Пример файла с вопросами можно посмотреть [здесь](https://github.com/ArkJzzz/quiz_bot/blob/master/question_file_example.txt) (кодировка KOI8-R).
 
 
 ## Установка
@@ -79,7 +79,7 @@ python3 bot-tg.py
 ```
 python3 bot-vk.py
 ```
-![](examination_tg.gif)
+![](examination_vk.gif)
 
 
 ------
