@@ -32,9 +32,11 @@ def main():
 
     quiz_tools_logger = logging.getLogger('quiz_tools')
     quiz_tools_logger.addHandler(console_handler)
+    quiz_tools_logger.setLevel(logging.DEBUG)
 
     redis_tools_logger = logging.getLogger('redis_tools')
     redis_tools_logger.addHandler(console_handler)
+    redis_tools_logger.setLevel(logging.DEBUG)
 
     parser = argparse.ArgumentParser(
         description='Утилита для занесения вопросов викторины в базу данных'
