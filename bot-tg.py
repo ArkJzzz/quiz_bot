@@ -22,7 +22,8 @@ import settings
 import quiz_tools
 import redis_tools
 
-logger = logging.getLogger('bot_tg')
+
+logger = logging.getLogger('quiz_bot.bot_tg')
 
 
 DATABASE = redis_tools.connect_to_redis()

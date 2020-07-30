@@ -20,7 +20,7 @@ import quiz_tools
 import redis_tools
 
 
-logger = logging.getLogger('bot_vk')
+logger = logging.getLogger('quiz_bot.bot_vk')
 
 DATABASE = redis_tools.connect_to_redis()
 

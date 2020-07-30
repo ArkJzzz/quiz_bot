@@ -16,7 +16,7 @@ from dotenv import load_dotenv
 import settings
 
 
-logger = logging.getLogger('redis_tools')
+logger = logging.getLogger('quiz_bot.redis_tools')
 
 
 def connect_to_redis():
@@ -26,6 +26,7 @@ def connect_to_redis():
         db=settings.redis_db_number, 
         password=settings.redis_password,
     )
+    logger.debug('Подключение к redis установлено')
 
     return database
 

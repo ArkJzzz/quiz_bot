@@ -14,15 +14,10 @@ import quiz_tools
 import redis_tools
 
 
-logger = logging.getLogger('init_quiz_db')
+logger = logging.getLogger('quiz_bot.init_quiz_db')
 
 
 def main():
-    logging.basicConfig(
-        format='%(asctime)s %(name)s:%(lineno)d - %(message)s', 
-        datefmt='%Y-%b-%d %H:%M:%S (%Z)',
-    )
-    logger.setLevel(logging.DEBUG)
     parser = argparse.ArgumentParser(
         description='Утилита для занесения вопросов викторины в базу данных'
         )

@@ -15,7 +15,7 @@ import redis
 from dotenv import load_dotenv
 
 
-logger = logging.getLogger('quiz_tools')
+logger = logging.getLogger('quiz_bot.quiz_tools')
 
 
 def get_question_cards(files_dir):

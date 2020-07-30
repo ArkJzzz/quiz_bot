@@ -8,23 +8,21 @@ from os import getenv
 from dotenv import load_dotenv
 
 
-redis_tools_logger = logging.getLogger('redis_tools')
-quiz_tools_logger = logging.getLogger('quiz_tools')
-bot_tg_logger = logging.getLogger('bot_tg')
-bot_vk_logger = logging.getLogger('bot_vk')
-init_quiz_db_logger = logging.getLogger('init_quiz_db')
+logger = logging.getLogger('quiz_bot')
 
-logging.basicConfig(
-    format='%(asctime)s %(name)s:%(lineno)d - %(message)s', 
-    datefmt='%Y-%b-%d %H:%M:%S (%Z)',
-    # level=logging.DEBUG,
-)
 
-redis_tools_logger.setLevel(logging.DEBUG)
-quiz_tools_logger.setLevel(logging.DEBUG)
-bot_tg_logger.setLevel(logging.DEBUG)
-bot_vk_logger.setLevel(logging.DEBUG)
-init_quiz_db_logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.DEBUG)
+
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter(
+        fmt='%(asctime)s %(name)s:%(lineno)d - %(message)s',
+        datefmt='%Y-%b-%d %H:%M:%S (%Z)',
+        style='%',
+    )
+console_handler.setFormatter(formatter)
+logger.addHandler(console_handler)
+
 
 
 load_dotenv()
