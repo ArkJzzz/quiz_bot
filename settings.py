@@ -10,7 +10,6 @@ from dotenv import load_dotenv
 
 logger = logging.getLogger('quiz_bot')
 
-
 logger.setLevel(logging.DEBUG)
 
 console_handler = logging.StreamHandler()

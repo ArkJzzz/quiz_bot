@@ -3,27 +3,23 @@ __author__ = 'ArkJzzz (arkjzzz@gmail.com)'
 
 
 import logging
+from os import getenv
 
-import redis
-from telegram import InlineKeyboardButton
-from telegram import InlineKeyboardMarkup
 from telegram import ReplyKeyboardMarkup
 from telegram import Update
 from telegram.ext import Updater
 from telegram.ext import CommandHandler
 from telegram.ext import Filters
 from telegram.ext import MessageHandler
-from telegram.ext import CallbackQueryHandler
 from telegram.ext import CallbackContext
 from telegram.ext import ConversationHandler
-from telegram.ext import RegexHandler
+from dotenv import load_dotenv
 
-import settings
 import quiz_tools
 import redis_tools
 
 
-logger = logging.getLogger('quiz_bot.bot_tg')
+logger = logging.getLogger('bot-tg')
 
 
 DATABASE = redis_tools.connect_to_redis()
@@ -99,8 +95,6 @@ def error_handler(update: Update, context: CallbackContext):
         raise context.error
     except FileNotFoundError:
         logger.error('Ошибка: Файл не найден', exc_info=True)
-    except redis.exceptions.AuthenticationError:
-        logger.error('Подключение к базе данных: ошибка аутентификации')
     except Exception  as err:
         logger.error('Бот упал с ошибкой:')
         logger.error(err)
@@ -111,10 +105,33 @@ def error_handler(update: Update, context: CallbackContext):
 
 
 def main():
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(
+            fmt='%(asctime)s %(name)s:%(lineno)d - %(message)s',
+            datefmt='%Y-%b-%d %H:%M:%S (%Z)',
+            style='%',
+        )
+    console_handler.setFormatter(formatter)
+
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(console_handler)
+
+    quiz_tools_logger = logging.getLogger('quiz_tools')
+    quiz_tools_logger.addHandler(console_handler)
+    quiz_tools_logger.setLevel(logging.DEBUG)
+
+    redis_tools_logger = logging.getLogger('redis_tools')
+    redis_tools_logger.addHandler(console_handler)
+    redis_tools_logger.setLevel(logging.DEBUG)
+
+    load_dotenv()
+    telegram_token = getenv('TELEGRAM_TOKEN')
+
     updater = Updater(
-        settings.telegram_token, 
-        use_context=True,
-    )
+            telegram_token,
+            use_context=True,
+        )
     
     conv_handler = ConversationHandler(
         entry_points=[

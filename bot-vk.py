@@ -5,22 +5,20 @@ __author__ = 'ArkJzzz (arkjzzz@gmail.com)'
 
 import logging
 import time
+from os import getenv
 
 import requests
-import redis
 import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from vk_api.utils import get_random_id
+from dotenv import load_dotenv
 
-
-
-import settings
 import quiz_tools
 import redis_tools
 
 
-logger = logging.getLogger('quiz_bot.bot_vk')
+logger = logging.getLogger('bot_vk')
 
 DATABASE = redis_tools.connect_to_redis()
 
@@ -92,7 +90,27 @@ def send_text_message(event, vk, keyboard):
 
 def main():
     # init
-    vk_session = vk_api.VkApi(token=settings.vk_token) 
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(
+            fmt='%(asctime)s %(name)s:%(lineno)d - %(message)s',
+            datefmt='%Y-%b-%d %H:%M:%S (%Z)',
+            style='%',
+        )
+    console_handler.setFormatter(formatter)
+
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(console_handler)
+
+    quiz_tools_logger = logging.getLogger('quiz_tools')
+    quiz_tools_logger.addHandler(console_handler)
+
+    redis_tools_logger = logging.getLogger('redis_tools')
+    redis_tools_logger.addHandler(console_handler)
+
+    load_dotenv()
+    vk_token = getenv('VK_TOKEN')
+    vk_session = vk_api.VkApi(token=vk_token) 
     longpoll = VkLongPoll(vk_session)
     vk = vk_session.get_api()
 

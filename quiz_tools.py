@@ -7,15 +7,11 @@ import re
 import json
 import random
 
-from os import getenv
 from os import walk as walkpath
 from os.path import join as joinpath
 
-import redis
-from dotenv import load_dotenv
 
-
-logger = logging.getLogger('quiz_bot.quiz_tools')
+logger = logging.getLogger('quiz_tools')
 
 
 def get_question_cards(files_dir):

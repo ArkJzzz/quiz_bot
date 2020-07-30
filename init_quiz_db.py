@@ -14,10 +14,28 @@ import quiz_tools
 import redis_tools
 
 
-logger = logging.getLogger('quiz_bot.init_quiz_db')
+logger = logging.getLogger('init_quiz_db')
 
 
 def main():
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(
+            fmt='%(asctime)s %(name)s:%(lineno)d - %(message)s',
+            datefmt='%Y-%b-%d %H:%M:%S (%Z)',
+            style='%',
+        )
+    console_handler.setFormatter(formatter)
+
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(console_handler)
+
+    quiz_tools_logger = logging.getLogger('quiz_tools')
+    quiz_tools_logger.addHandler(console_handler)
+
+    redis_tools_logger = logging.getLogger('redis_tools')
+    redis_tools_logger.addHandler(console_handler)
+
     parser = argparse.ArgumentParser(
         description='Утилита для занесения вопросов викторины в базу данных'
         )
