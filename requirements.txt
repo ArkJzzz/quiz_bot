@@ -2,5 +2,5 @@ python-dotenv==0.10.3
 python-telegram-bot==12.2.0
 redis==3.4.1
 requests==2.22.0
-urllib3==1.25.7
+urllib3==1.25.8
 vk-api==11.6.1
